@@ -2,72 +2,77 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import date
+from fpdf import FPDF
 
-# Dummy user balance and savings data
+# Simulated data
+user_name = "Soham"
 user_balance = 15000
 monthly_expenses = [15000, 14500, 16000, 14000, 15500, 15000]
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 avg_expense = np.mean(monthly_expenses)
 suggested_saving = avg_expense * 0.2
 predicted_cashflow = avg_expense - suggested_saving
+today = date.today()
 
-# App layout
-st.set_page_config(page_title="FinZ Prototype", layout="centered")
-st.title("FinZ – Your Gen Z Finance Buddy")
+# Page config
+st.set_page_config(page_title="FinZ Mobile", layout="centered")
+st.markdown("<h2 style='text-align:center; color:#90caf9;'>FinZ – Mobile Prototype</h2>", unsafe_allow_html=True)
 
-# Sidebar for navigation
-page = st.sidebar.radio("Navigate", ["Dashboard", "Add Expense", "Insights", "Gamified Challenge"])
+# Profile greeting
+st.markdown(f"""
+<div style='text-align: center; margin-bottom: 1rem;'>
+    <img src='https://cdn-icons-png.flaticon.com/512/149/149071.png' width='80' style='border-radius: 50%;'><br>
+    <h4 style='color:white;'>Welcome back, {user_name}!</h4>
+</div>
+""", unsafe_allow_html=True)
 
-# Dashboard
-if page == "Dashboard":
-    st.subheader("Dashboard")
-    st.metric(label="Current Balance", value=f"₹{user_balance}")
-    st.metric(label="Suggested Saving Goal", value=f"₹{suggested_saving:.2f}")
-    st.metric(label="Predicted Cashflow (Next Month)", value=f"₹{predicted_cashflow:.2f}")
-    st.markdown("---")
+# Notification panel
+with st.expander("🔔 Notifications"):
+    st.info("💡 Your rent is due in 3 days.")
+    st.info("📈 You saved 92% of your goal last month.")
+    st.info("🧾 2 new offers in investment suggestions!")
 
-# Add Expense
-elif page == "Add Expense":
-    st.subheader("Add an Expense")
-    with st.form("expense_form"):
-        desc = st.text_input("Description (e.g., Netflix, Uber)")
-        amount = st.number_input("Amount (₹)", min_value=0)
-        category = st.selectbox("Category", ["Dining", "Transport", "Subscriptions", "Utilities", "Shopping", "Rent", "Groceries"])
-        submitted = st.form_submit_button("Add Expense")
-        if submitted:
-            st.success(f"Added: ₹{amount} for '{desc}' under '{category}'")
+# Gradient metric cards
+st.markdown(f'<div style="background: linear-gradient(135deg, #42a5f5, #478ed1); padding: 1rem; border-radius: 10px; margin-bottom: 10px;"><h4 style="margin:0; color:white;">Current Balance</h4><p style="font-size: 1.5rem; color:white;">INR {user_balance}</p></div>', unsafe_allow_html=True)
+st.markdown(f'<div style="background: linear-gradient(135deg, #66bb6a, #43a047); padding: 1rem; border-radius: 10px; margin-bottom: 10px;"><h4 style="margin:0; color:white;">Saving Goal</h4><p style="font-size: 1.5rem; color:white;">INR {suggested_saving:.2f}</p></div>', unsafe_allow_html=True)
+st.markdown(f'<div style="background: linear-gradient(135deg, #ffa726, #fb8c00); padding: 1rem; border-radius: 10px; margin-bottom: 10px;"><h4 style="margin:0; color:white;">Predicted Cashflow</h4><p style="font-size: 1.5rem; color:white;">INR {predicted_cashflow:.2f}</p></div>', unsafe_allow_html=True)
 
-# Insights
-elif page == "Insights":
-    st.subheader("Spending Insights")
-    category_data = {
-        "Dining": 3000,
-        "Transport": 2000,
-        "Subscriptions": 2500,
-        "Utilities": 1800,
-        "Shopping": 2200
-    }
-    df = pd.DataFrame.from_dict(category_data, orient='index', columns=['Amount'])
-    st.write("*Spending Breakdown*")
-    st.bar_chart(df)
+# Investment tips
+st.markdown("### 💹 Investment Suggestions")
+st.success("Start a INR 500 SIP in Axis Bluechip – low risk, high consistency.")
+st.success("Try Green Investing – ESG score 82+, long-term stability.")
+st.success("Consider Gold ETF – Hedge against inflation.")
 
-    st.write("*Monthly Expense Trend*")
-    fig, ax = plt.subplots()
-    ax.plot(months, monthly_expenses, marker='o', color='blue')
-    ax.set_title("Monthly Expenses")
-    ax.set_xlabel("Month")
-    ax.set_ylabel("Expense (₹)")
-    st.pyplot(fig)
+# Monthly expense chart
+st.markdown("### 📊 Monthly Expense Trend")
+fig, ax = plt.subplots()
+ax.plot(months, monthly_expenses, marker='o', color='#90caf9')
+ax.set_facecolor('#1e1e1e')
+fig.patch.set_facecolor('#121212')
+ax.set_title("Monthly Expenses", color='white')
+ax.set_xlabel("Month", color='white')
+ax.set_ylabel("Expense (INR)", color='white')
+ax.tick_params(colors='white')
+st.pyplot(fig)
 
-# Challenge
-elif page == "Gamified Challenge":
-    st.subheader("Savings Challenge")
-    st.markdown("*Challenge:* Save ₹5000 this month")
-    actual_saved = st.slider("How much have you saved so far?", 0, 10000, 3000, step=500)
+# PDF report generation
+def generate_pdf():
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=16)
+    pdf.cell(200, 10, txt="FinZ Monthly Report", ln=True, align='C')
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt=f"Name: {user_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Date: {today}", ln=True)
+    pdf.cell(200, 10, txt=f"Average Expense: INR {avg_expense:.2f}", ln=True)
+    pdf.cell(200, 10, txt=f"Suggested Saving: INR {suggested_saving:.2f}", ln=True)
+    pdf.cell(200, 10, txt=f"Predicted Cashflow: INR {predicted_cashflow:.2f}", ln=True)
+    file_path = "/tmp/FinZ_Report.pdf"
+    pdf.output(file_path)
+    return file_path
 
-    if actual_saved >= 5000:
-        st.success("Congrats! You've completed the challenge.")
-    else:
-        st.warning("Keep going! You're almost there.")
-
-    st.progress(min(actual_saved / 5000, 1.0))
+if st.button("📥 Export Monthly Report as PDF"):
+    pdf_path = generate_pdf()
+    with open(pdf_path, "rb") as f:
+        st.download_button(label="Download Report", file_name="FinZ_Report.pdf", mime="application/pdf", data=f.read())
