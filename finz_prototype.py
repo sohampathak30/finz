@@ -35,7 +35,7 @@ elif page == "Add Expense":
         category = st.selectbox("Category", ["Dining", "Transport", "Subscriptions", "Utilities", "Shopping", "Rent", "Groceries"])
         submitted = st.form_submit_button("Add Expense")
         if submitted:
-            st.success(f"Added: ₹{amount} for {desc} under {category}")
+            st.success(f"Added: ₹{amount} for '{desc}' under '{category}'")
 
 # Insights
 elif page == "Insights":
